@@ -130,8 +130,3 @@ Permite el registro de solicitudes de nuevos socios, enviando información relev
   Cuando la solicitud es aceptada y validada correctamente.
 
 ---
-
-## Prompt para Documentación Técnica
-
-"Genera una documentación técnica en formato Markdown para una API de consulta y registro de solicitudes de nuevos socios en la Cámara de Comercio de Samborondón. Debe incluir la descripción general, endpoints con ejemplos JSON de solicitud y respuesta, validaciones y tipos de respuesta. Organiza la información de manera clara y estructurada."
-

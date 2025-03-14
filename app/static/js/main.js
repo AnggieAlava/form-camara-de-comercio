@@ -10,10 +10,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const statusForm = document.getElementById('status-form');
     const solicitudForm = document.getElementById('solicitud-form');
     const estadoForm = document.getElementById('estado-form');
-    const tipopersona = document.getElementById('tipo_persona');
+    const tipopersona = document.getElementById('tipo_personeria');
     const cedulaRuc = document.getElementById('cedula_ruc');
     const registroMensaje = document.getElementById('registro-mensaje');
     const estadoMensaje = document.getElementById('estado-mensaje');
+
+    console.log('DOM Elements inicializados correctamente');
 
     // File input elements
     const file1Group = document.getElementById('file1-group');
@@ -104,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Handle form submission for new registration
     solicitudForm.addEventListener('submit', function (e) {
+        console.log('Iniciando envío de formulario de solicitud');
         e.preventDefault();
 
         // Clear previous message
@@ -121,9 +124,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        console.log('Validación de formulario de solicitud correcta');
+
         // Create FormData for processing files
         const formData = new FormData(this);
         const jsonData = {};
+
+        console.log('FormData creado:', formData);
 
         // Process form fields
         for (const [key, value] of formData.entries()) {
@@ -134,23 +141,62 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Process files
         let fileCount = 0;
+        let filesToProcess = 0;
+
+        // Contar primero cuántos archivos hay para procesar
+        for (const [key, file] of formData.entries()) {
+            if (key.startsWith('file') && file instanceof File && file.name) {
+                filesToProcess++;
+            }
+        }
+
+        console.log(`Número de archivos a procesar: ${filesToProcess}`);
+
+        // Si no hay archivos, enviar la solicitud inmediatamente
+        if (filesToProcess === 0) {
+            console.log('No hay archivos para procesar, enviando solicitud');
+            sendRegistrationRequest(jsonData);
+            return;
+        }
+
+        // Procesar los archivos
         for (const [key, file] of formData.entries()) {
             if (key.startsWith('file') && file instanceof File && file.name) {
                 fileCount++;
+                console.log(`Procesando archivo ${fileCount}: ${file.name}`);
+
                 const reader = new FileReader();
                 reader.onload = function (event) {
                     // Get base64 content without prefix
                     const base64String = event.target.result.split(',')[1];
-                    // Get file extension
-                    const fileExt = file.name.split('.').pop();
+
+                    // Validate file type
+                    const fileIndex = key.replace('file', '');
+                    const expectedType = fileIndex % 2 === 1 ? 'pdf' : 'docx';
+                    const mimeType = file.type;
+
+                    console.log(`Validando archivo ${fileIndex}:`, {
+                        nombre: file.name,
+                        tipo: mimeType,
+                        tipoEsperado: expectedType
+                    });
 
                     // Add to JSON data
-                    jsonData[`file${fileCount}`] = base64String;
-                    jsonData[`name${fileCount}`] = file.name;
-                    jsonData[`type${fileCount}`] = fileExt;
+                    jsonData[`file${fileIndex}`] = base64String;
+                    jsonData[`name${fileIndex}`] = file.name;
+                    jsonData[`type${fileIndex}`] = expectedType;
+
+                    console.log(`Archivo ${fileIndex} procesado correctamente`);
 
                     // If all files are processed, send the request
-                    if (Object.keys(jsonData).filter(k => k.startsWith('file')).length === fileCount) {
+                    if (Object.keys(jsonData).filter(k => k.startsWith('file')).length === filesToProcess) {
+                        console.log('Todos los archivos procesados, enviando solicitud');
+                        console.log('Tipos de archivos:', {
+                            type1: jsonData.type1,
+                            type2: jsonData.type2,
+                            type3: jsonData.type3,
+                            type4: jsonData.type4
+                        });
                         sendRegistrationRequest(jsonData);
                     }
                 };
@@ -158,12 +204,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // If no files to process, send immediately
-        if (fileCount === 0) {
-            sendRegistrationRequest(jsonData);
-        }
-
         function sendRegistrationRequest(data) {
+            console.log('Enviando datos a la API:', data);
+
             // Submit form
             fetch('/api/registro-solicitud', {
                 method: 'POST',
@@ -172,8 +215,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify(data)
             })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Respuesta recibida:', response);
+                    return response.text().then(text => {
+                        try {
+                            // Intentar parsear como JSON
+                            const json = JSON.parse(text);
+                            console.log('Respuesta JSON:', json);
+                            return json;
+                        } catch (e) {
+                            // Si no es JSON, mostrar el texto
+                            console.error('Respuesta no es JSON:', text);
+                            throw new Error('Respuesta del servidor no es JSON válido');
+                        }
+                    });
+                })
                 .then(data => {
+                    console.log('Datos procesados:', data);
                     if (data.codigo === "200") {
                         showMessage(registroMensaje, data.message, 'success');
                         solicitudForm.reset();
@@ -182,14 +240,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 })
                 .catch(error => {
+                    console.error('Error en la petición:', error);
                     showMessage(registroMensaje, 'Error de conexión. Por favor, inténtelo de nuevo más tarde.', 'error');
-                    console.error('Error:', error);
                 });
         }
     });
 
     // Handle form submission for status check
     estadoForm.addEventListener('submit', function (e) {
+        console.log('Iniciando consulta de estado');
         e.preventDefault();
 
         // Clear previous message
@@ -198,11 +257,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Get cedula/RUC value
         const cedulaRucValue = this.querySelector('[name="cedula_ruc"]').value.trim();
+        console.log('Cédula/RUC para consulta:', cedulaRucValue);
 
         // Create JSON payload
         const jsonData = {
             cedula_ruc: cedulaRucValue
         };
+
+        console.log('Enviando datos a la API:', jsonData);
 
         // Submit form
         fetch('/api/estado-solicitud', {
@@ -212,8 +274,23 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(jsonData)
         })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Respuesta recibida:', response);
+                return response.text().then(text => {
+                    try {
+                        // Intentar parsear como JSON
+                        const json = JSON.parse(text);
+                        console.log('Respuesta JSON:', json);
+                        return json;
+                    } catch (e) {
+                        // Si no es JSON, mostrar el texto
+                        console.error('Respuesta no es JSON:', text);
+                        throw new Error('Respuesta del servidor no es JSON válido');
+                    }
+                });
+            })
             .then(data => {
+                console.log('Datos procesados:', data);
                 if (data.codigo === "200") {
                     showMessage(estadoMensaje, `Estado de solicitud: ${data.estado}`, 'info');
                 } else {
@@ -221,13 +298,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(error => {
+                console.error('Error en la petición:', error);
                 showMessage(estadoMensaje, 'Error de conexión. Por favor, inténtelo de nuevo más tarde.', 'error');
-                console.error('Error:', error);
             });
     });
 
     // Helper function to show message
     function showMessage(element, message, type) {
+        console.log(`Mostrando mensaje: ${message}, tipo: ${type}`);
         element.textContent = message;
         element.className = `mensaje ${type}`;
         element.style.display = 'block';
@@ -235,4 +313,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize file requirements
     updateRequiredFiles();
+    console.log('Inicialización de JavaScript completada');
 }); 
