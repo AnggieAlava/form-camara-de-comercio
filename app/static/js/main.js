@@ -121,27 +121,71 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Create FormData
+        // Create FormData for processing files
         const formData = new FormData(this);
+        const jsonData = {};
 
-        // Submit form
-        fetch('/enviar-solicitud', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.codigo === "200") {
-                    showMessage(registroMensaje, data.message, 'success');
-                    solicitudForm.reset();
-                } else {
-                    showMessage(registroMensaje, data.message || 'Ocurrió un error al procesar la solicitud.', 'error');
-                }
+        // Process form fields
+        for (const [key, value] of formData.entries()) {
+            if (!key.startsWith('file')) {
+                jsonData[key] = value;
+            }
+        }
+
+        // Process files
+        let fileCount = 0;
+        for (const [key, file] of formData.entries()) {
+            if (key.startsWith('file') && file instanceof File && file.name) {
+                fileCount++;
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    // Get base64 content without prefix
+                    const base64String = event.target.result.split(',')[1];
+                    // Get file extension
+                    const fileExt = file.name.split('.').pop();
+
+                    // Add to JSON data
+                    jsonData[`file${fileCount}`] = base64String;
+                    jsonData[`name${fileCount}`] = file.name;
+                    jsonData[`type${fileCount}`] = fileExt;
+
+                    // If all files are processed, send the request
+                    if (Object.keys(jsonData).filter(k => k.startsWith('file')).length === fileCount) {
+                        sendRegistrationRequest(jsonData);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // If no files to process, send immediately
+        if (fileCount === 0) {
+            sendRegistrationRequest(jsonData);
+        }
+
+        function sendRegistrationRequest(data) {
+            // Submit form
+            fetch('/api/registro-solicitud', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
             })
-            .catch(error => {
-                showMessage(registroMensaje, 'Error de conexión. Por favor, inténtelo de nuevo más tarde.', 'error');
-                console.error('Error:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.codigo === "200") {
+                        showMessage(registroMensaje, data.message, 'success');
+                        solicitudForm.reset();
+                    } else {
+                        showMessage(registroMensaje, data.message || 'Ocurrió un error al procesar la solicitud.', 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage(registroMensaje, 'Error de conexión. Por favor, inténtelo de nuevo más tarde.', 'error');
+                    console.error('Error:', error);
+                });
+        }
     });
 
     // Handle form submission for status check
@@ -152,13 +196,21 @@ document.addEventListener('DOMContentLoaded', function () {
         estadoMensaje.style.display = 'none';
         estadoMensaje.className = 'mensaje';
 
-        // Create FormData
-        const formData = new FormData(this);
+        // Get cedula/RUC value
+        const cedulaRucValue = this.querySelector('[name="cedula_ruc"]').value.trim();
+
+        // Create JSON payload
+        const jsonData = {
+            cedula_ruc: cedulaRucValue
+        };
 
         // Submit form
-        fetch('/consultar-estado', {
+        fetch('/api/estado-solicitud', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonData)
         })
             .then(response => response.json())
             .then(data => {

@@ -29,7 +29,7 @@ def validate_estado_solicitud(cedula_ruc):
 def validate_solicitud(data):
     """Validate solicitud form data"""
     errors = []
-    required_fields = ["tipo_persona", "tipo_identificacion", "cedula_ruc", "razon_social"]
+    required_fields = ["tipo_personeria", "cedula_ruc"]  # Changed from tipo_personeria to tipo_personeria
 
     for field in required_fields:
         if not data.get(field):
@@ -37,11 +37,25 @@ def validate_solicitud(data):
 
     # Validate cedula/RUC format
     cedula_ruc = data.get("cedula_ruc")
+    tipo_personeria = data.get("tipo_personeria")
+
     if cedula_ruc:
         if not cedula_ruc.isdigit():
             errors.append("La cédula/RUC debe contener solo números")
-        elif len(cedula_ruc) not in [10, 13]:
-            errors.append("La cédula/RUC debe tener 10 o 13 dígitos")
+        # Validate RUC has 13 digits for tipo_personeria 2 or 3
+        elif tipo_personeria in ["2", "3"] and len(cedula_ruc) != 13:
+            errors.append("El RUC debe tener 13 dígitos")
+        elif tipo_personeria == "1" and len(cedula_ruc) != 10:
+            errors.append("La cédula debe tener 10 dígitos")
+
+    # Validate files according to tipo_personeria
+    files_count = sum(1 for key in data if key.startswith("file") and data[key])
+    if tipo_personeria == "1" and files_count < 2:
+        errors.append("Para Persona Natural sin RUC se requieren al menos 2 archivos")
+    elif tipo_personeria == "2" and files_count < 3:
+        errors.append("Para Persona Natural con RUC se requieren al menos 3 archivos")
+    elif tipo_personeria == "3" and files_count < 4:
+        errors.append("Para Persona Jurídica se requieren 4 archivos")
 
     return (len(errors) == 0, errors[0] if errors else None)
 
@@ -54,66 +68,32 @@ def init_app(app):
         """Render the main form page"""
         return render_template("index.html")
 
-    @app.route("/consultar-estado", methods=["POST"])
-    def consultar_estado():
+    @app.route("/api/estado-solicitud", methods=["POST"])
+    def estado_solicitud():
         """API endpoint to check the status of a request"""
-        cedula_ruc = request.form.get("cedula_ruc")
-
-        # Validate input
-        is_valid, error = validate_estado_solicitud(cedula_ruc)
-        if not is_valid:
-            return jsonify({"error": error}), 400
+        data = request.get_json()
+        cedula_ruc = data.get("cedula_ruc")
 
         try:
-            # Make the API request
-            response = requests.post(f"{API_URL}/api/estado-solicitud", json={"cedula_ruc": cedula_ruc}, timeout=10)
+            # Direct connection to the external API
+            response = requests.post(
+                "http://52.20.32.219/api/estado-solicitud", json={"cedula_ruc": cedula_ruc}, timeout=10
+            )
 
             # Return the response from the API
             return jsonify(response.json())
         except requests.RequestException as e:
             return jsonify({"error": f"Error al consultar el estado: {str(e)}"}), 500
 
-    @app.route("/enviar-solicitud", methods=["POST"])
-    def enviar_solicitud():
+    @app.route("/api/registro-solicitud", methods=["POST"])
+    def registro_solicitud():
         """API endpoint to submit a new request"""
         # Extract form data
-        form_data = {
-            "tipo_persona": request.form.get("tipo_persona"),
-            "tipo_identificacion": request.form.get("tipo_identificacion"),
-            "cedula_ruc": request.form.get("cedula_ruc"),
-            "razon_social": request.form.get("razon_social"),
-            "correo": request.form.get("correo"),
-            "telefono": request.form.get("telefono"),
-            "direccion": request.form.get("direccion"),
-        }
-
-        # Validate form data
-        is_valid, error = validate_solicitud(form_data)
-        if not is_valid:
-            return jsonify({"error": error}), 400
-
-        # Process files
-        files = []
-        for key, file in request.files.items():
-            if file.filename:
-                try:
-                    # Read and encode file content
-                    file_content = file.read()
-                    encoded_content = base64.b64encode(file_content).decode("utf-8")
-
-                    files.append(
-                        {"filename": file.filename, "content": encoded_content, "content_type": file.content_type}
-                    )
-                except Exception as e:
-                    return jsonify({"error": f"Error processing file {file.filename}: {str(e)}"}), 400
-
-        # Add files to the form data
-        if files:
-            form_data["files"] = files
+        form_data = request.get_json()
 
         try:
-            # Make the API request
-            response = requests.post(f"{API_URL}/api/solicitud", json=form_data, timeout=30)
+            # Direct connection to the external API
+            response = requests.post("http://52.20.32.219/api/registro-solicitud", json=form_data, timeout=30)
 
             # Return the response from the API
             return jsonify(response.json())

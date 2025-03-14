@@ -1,107 +1,137 @@
-# Formulario de Solicitud para Cámara de Comercio de Samborondón
+# API de Comunicación Sistema Confecam – Cámara de Comercio de Samborondón
 
-Esta aplicación proporciona un formulario web para la solicitud de nuevos socios y consulta de estado, conectándose a una API externa para el procesamiento de las solicitudes.
+## Descripción General
 
-![Vista previa del formulario](docs/form.jpeg)
+Dentro del Sistema Confecam se han desarrollado dos APIs para:
+1. **Consulta del estado de una Solicitud de Nuevo Socio**.
+2. **Recepción de información para la creación de un nuevo Socio**.
 
-## Arquitectura del Proyecto
+### URL Base de Conexión
+`http://52.20.32.219`
 
-## Características
+---
 
-- Formulario para el registro de nuevos socios con validación de campos
-- Consulta de estado de solicitudes previamente enviadas
-- Soporte para diferentes tipos de Persona jurídica
-- Carga de archivos con validación según el tipo de Persona
-- Diseño responsivo y amigable al usuario
-- Integración con APIs externas para el envío y consulta de solicitudes
+## Endpoints
 
-## Tecnologías utilizadas
+### 1. Estado de Solicitud
 
-- Backend: Python 3 con Flask
-- Frontend: HTML5, CSS3, JavaScript (Vanilla)
-- Procesamiento de solicitudes: Solicitudes HTTP a API externa
+**Descripción:**
+Permite consultar el estado de una solicitud de socio mediante la identificación ingresada (Cédula, R.U.C., Pasaporte, etc.).
 
-## Requisitos
+#### **URL del Endpoint**
+`http://52.20.32.219/api/estado-solicitud`
 
-- Python 3.6 o superior
-- pip (administrador de paquetes de Python)
-- Navegador web moderno
-
-## Instalación
-
-1. Clonar este repositorio:
-   ```bash
-   git clone <URL_DEL_REPOSITORIO>
-   cd form-steve
-   ```
-
-2. Crear y activar un entorno virtual de Python:
-   ```bash
-   # En Linux/Mac
-   python3 -m venv venv
-   source venv/bin/activate
-   
-   # En Windows
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. Instalar las dependencias:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Configuración
-
-- La URL de la API está configurada en el archivo `app.py`. Por defecto está configurada como `http://52.20.32.219`.
-- Si es necesario cambiar esta URL, modifique la constante `API_URL` en el archivo `app.py`.
-
-## Ejecución
-
-Para ejecutar la aplicación en modo de desarrollo, siga estos pasos:
-
-1. Asegúrese de que el entorno virtual está activado.
-2. Ejecute el siguiente comando para iniciar el servidor de desarrollo:
-   ```bash
-   python app.py
-   ```
-3. Abra un navegador web y vaya a `http://127.0.0.1:5000/` para acceder a la aplicación.
-
-## Estructura del proyecto
-
-```
-form-steve/
-├── app/
-│   ├── static/
-│   │   ├── css/
-│   │   │   └── styles.css
-│   │   ├── js/
-│   │   │   └── main.js
-│   │   └── img/
-│   └── templates/
-│       └── index.html
-├── .env/
-├── app.py
-├── Pipfile
-|-- Pipfile.lock
-└── README.md
-└── requirements.txt
+#### **JSON de Petición Esperado**
+```json
+{
+    "cedula_ruc": "0933489968001"
+}
 ```
 
-## API Endpoints
+#### **Variable esperada:**
+- `cedula_ruc`: Identificación del solicitante.
 
-La aplicación se comunica con dos endpoints principales:
+#### **Tipos de Respuesta**
 
-1. **Estado de Solicitud**: 
-   - Endpoint: `/api/estado-solicitud`
-   - Método: POST
-   - Propósito: Consultar el estado de una solicitud previamente enviada.
+- **Solicitud no encontrada**
+  ```json
+  {
+      "codigo": "400",
+      "message": "No existe una Solicitud con la información ingresada."
+  }
+  ```
+  Cuando el valor ingresado en `cedula_ruc` no se encuentra registrado.
 
-2. **Registro de Solicitud**: 
-   - Endpoint: `/api/registro-solicitud`
-   - Método: POST
-   - Propósito: Enviar una nueva solicitud de socio con documentos adjuntos.
+- **Solicitud encontrada**
+  ```json
+  {
+      "codigo": "200",
+      "message": "Solicitud encontrada.",
+      "estado": "En Proceso"
+  }
+  ```
+  Cuando la solicitud está registrada, el campo `estado` puede tener los siguientes valores:
+  - En Proceso
+  - En Revisión
+  - Aprobado
+  - Rechazado
 
-## Contribución
+---
 
-Si desea contribuir a este proyecto, por favor haga un fork y envíe un pull request con sus cambios. 
+### 2. Registro de Solicitud
+#### **URL del Endpoint**
+`http://52.20.32.219/api/registro-solicitud`
+
+**Descripción:**
+Permite el registro de solicitudes de nuevos socios, enviando información relevante junto con archivos codificados en Base64.
+
+#### **JSON de Petición Esperado**
+```json
+{
+    "file1": "texto_archivo_Base64",
+    "file2": "texto_archivo_Base64",
+    "file3": "texto_archivo_Base64",
+    "file4": "texto_archivo_Base64",
+    "name1": "archivo1",
+    "name2": "archivo2",
+    "name3": "archivo3",
+    "name4": "archivo4",
+    "type1": "pdf",
+    "type2": "docx",
+    "type3": "pdf",
+    "type4": "docx",
+    "tipo_personeria": "3",
+    "tipo_identificacion": "1",
+    "cedula_ruc": "0933489968002",
+    "razon_social": "Prueba Socio",
+    "correo": null,
+    "telefono": null,
+    "direccion": null
+}
+```
+
+#### **Variables esperadas**
+- `file1`, `file2`, `file3`, `file4`: Archivos en formato Base64.
+- `name1`, `name2`, `name3`, `name4`: Nombres de los archivos.
+- `type1`, `type2`, `type3`, `type4`: Extensión de los archivos.
+- `tipo_personeria`: Tipo de socio.
+  - `1`: Persona Natural sin RUC.
+  - `2`: Persona Natural con RUC.
+  - `3`: Persona Jurídica.
+- `cedula_ruc`: Documento del nuevo socio (RUC, Cédula o Pasaporte).
+- `razon_social`: Nombre o Razón Social del nuevo socio.
+- `correo`, `telefono`, `direccion`: Datos de contacto del nuevo socio.
+
+#### **Validaciones**
+- Si `tipo_personeria` es `2` o `3`, el `cedula_ruc` debe tener 13 caracteres (RUC).
+- Si `tipo_personeria` es:
+  - `1`: Se requieren al menos 2 archivos.
+  - `2`: Se requieren al menos 3 archivos.
+  - `3`: Se requieren los 4 archivos.
+
+#### **Tipos de Respuesta**
+
+- **Solicitud ya ingresada**
+  ```json
+  {
+      "codigo": "400",
+      "message": "Ya existe una Solicitud con la misma Cédula o RUC."
+  }
+  ```
+  Cuando ya existe una solicitud con el mismo `cedula_ruc`.
+
+- **Solicitud recibida con éxito**
+  ```json
+  {
+      "codigo": "200",
+      "message": "Archivos subidos exitosamente"
+  }
+  ```
+  Cuando la solicitud es aceptada y validada correctamente.
+
+---
+
+## Prompt para Documentación Técnica
+
+"Genera una documentación técnica en formato Markdown para una API de consulta y registro de solicitudes de nuevos socios en la Cámara de Comercio de Samborondón. Debe incluir la descripción general, endpoints con ejemplos JSON de solicitud y respuesta, validaciones y tipos de respuesta. Organiza la información de manera clara y estructurada."
+
