@@ -10,8 +10,8 @@ Esta aplicación proporciona un formulario web para la solicitud de nuevos socio
 
 - Formulario para el registro de nuevos socios con validación de campos
 - Consulta de estado de solicitudes previamente enviadas
-- Soporte para diferentes tipos de personería jurídica
-- Carga de archivos con validación según el tipo de personería
+- Soporte para diferentes tipos de Persona jurídica
+- Carga de archivos con validación según el tipo de Persona
 - Diseño responsivo y amigable al usuario
 - Integración con APIs externas para el envío y consulta de solicitudes
 

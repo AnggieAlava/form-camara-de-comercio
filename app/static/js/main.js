@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const statusForm = document.getElementById('status-form');
     const solicitudForm = document.getElementById('solicitud-form');
     const estadoForm = document.getElementById('estado-form');
-    const tipoPersoneria = document.getElementById('tipo_personeria');
+    const tipopersona = document.getElementById('tipo_persona');
     const cedulaRuc = document.getElementById('cedula_ruc');
     const registroMensaje = document.getElementById('registro-mensaje');
     const estadoMensaje = document.getElementById('estado-mensaje');
@@ -54,30 +54,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Update required files based on tipo_personeria selection
-    tipoPersoneria.addEventListener('change', updateRequiredFiles);
+    // Update required files based on tipo_persona selection
+    tipopersona.addEventListener('change', updateRequiredFiles);
 
     function updateRequiredFiles() {
-        const personeriaValue = tipoPersoneria.value;
+        const personaValue = tipopersona.value;
 
         // Reset all files
         [file1Input, file2Input, file3Input, file4Input].forEach(input => {
             input.required = false;
         });
 
-        // Set required based on personeria type
-        if (personeriaValue === '1') { // Persona Natural sin RUC
+        // Set required based on persona type
+        if (personaValue === '1') { // Persona Natural sin RUC
             file1Input.required = true;
             file2Input.required = true;
             file3Group.style.display = 'block';
             file4Group.style.display = 'block';
-        } else if (personeriaValue === '2') { // Persona Natural con RUC
+        } else if (personaValue === '2') { // Persona Natural con RUC
             file1Input.required = true;
             file2Input.required = true;
             file3Input.required = true;
             file3Group.style.display = 'block';
             file4Group.style.display = 'block';
-        } else if (personeriaValue === '3') { // Persona Jurídica
+        } else if (personaValue === '3') { // Persona Jurídica
             file1Input.required = true;
             file2Input.required = true;
             file3Input.required = true;
@@ -89,13 +89,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Validate RUC for Persona Natural con RUC / Persona Jurídica
     cedulaRuc.addEventListener('blur', function () {
-        const personeriaValue = tipoPersoneria.value;
+        const personaValue = tipopersona.value;
         const cedulaRucValue = this.value.trim();
         const errorElement = document.getElementById('cedula-ruc-error');
 
         errorElement.textContent = '';
 
-        if (personeriaValue === '2' || personeriaValue === '3') {
+        if (personaValue === '2' || personaValue === '3') {
             if (cedulaRucValue.length !== 13) {
                 errorElement.textContent = 'RUC debe tener 13 dígitos.';
             }
@@ -111,10 +111,10 @@ document.addEventListener('DOMContentLoaded', function () {
         registroMensaje.className = 'mensaje';
 
         // Validate form
-        const personeriaValue = tipoPersoneria.value;
+        const personaValue = tipopersona.value;
         const cedulaRucValue = cedulaRuc.value.trim();
 
-        if (personeriaValue === '2' || personeriaValue === '3') {
+        if (personaValue === '2' || personaValue === '3') {
             if (cedulaRucValue.length !== 13) {
                 showMessage(registroMensaje, 'Para Persona Natural con RUC o Persona Jurídica, el RUC debe tener 13 dígitos.', 'error');
                 return;
