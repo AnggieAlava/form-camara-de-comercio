@@ -3,6 +3,9 @@
  * Handles form submission, validation, and UI interactions
  */
 
+// API Base URL
+const API_BASE_URL = 'http://52.20.32.219';
+
 document.addEventListener('DOMContentLoaded', function () {
     // DOM Elements
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -208,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Enviando datos a la API:', data);
 
             // Submit form
-            fetch('/api/registro-solicitud', {
+            fetch(`${API_BASE_URL}/api/registro-solicitud`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -267,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Enviando datos a la API:', jsonData);
 
         // Submit form
-        fetch('/api/estado-solicitud', {
+        fetch(`${API_BASE_URL}/api/estado-solicitud`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
