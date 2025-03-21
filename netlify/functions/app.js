@@ -35,7 +35,7 @@ exports.handler = async function (event, context) {
         }
 
         // Servir el index.html por defecto
-        const htmlContent = fs.readFileSync(path.join(__dirname, '../../static/templates', page), 'utf8');
+        const htmlContent = fs.readFileSync(path.join(__dirname, '../../static', page), 'utf8');
 
         return {
             statusCode: 200,
@@ -47,7 +47,11 @@ exports.handler = async function (event, context) {
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: 'Error interno del servidor', details: err.message })
+            body: JSON.stringify({
+                error: 'Error interno del servidor',
+                details: err.message,
+                path: path.join(__dirname, '../../static/templates', 'index.html')
+            })
         };
     }
 }; 
