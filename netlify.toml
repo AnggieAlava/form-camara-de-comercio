@@ -1,5 +1,5 @@
 [build]
-  command = "pip install -r requirements.txt && mkdir -p static && cp -r app/templates/* static/ && cp -r app/static/* static/"
+  command = "pip install -r requirements.txt && mkdir -p static/static && cp -r app/static/* static/static/ && cp app/templates/index.html static/"
   publish = "static"
   functions = "netlify/functions"
 
@@ -9,6 +9,11 @@
 
 [functions]
   directory = "netlify/functions"
+
+[[redirects]]
+  from = "/static/*"
+  to = "/static/:splat"
+  status = 200
 
 [[redirects]]
   from = "/*"
