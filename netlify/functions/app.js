@@ -1,4 +1,5 @@
-const { spawn } = require('child_process');
+const { exec } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 exports.handler = async function (event, context) {
@@ -19,49 +20,34 @@ exports.handler = async function (event, context) {
     }
 
     try {
-        // Inicia un servidor Flask en segundo plano
-        const python = spawn('python', ['-m', 'flask', 'run', '--no-debugger']);
+        // Determinar qué página servir según la ruta
+        let page = 'index.html';
+        if (event.path !== '/' && event.path !== '') {
+            // Comprobar si existe un archivo HTML correspondiente
+            const filePath = path.join(__dirname, '../../static', event.path);
+            if (fs.existsSync(filePath)) {
+                return {
+                    statusCode: 200,
+                    headers: { 'Content-Type': 'text/html' },
+                    body: fs.readFileSync(filePath, 'utf8')
+                };
+            }
+        }
 
-        // Captura la salida y los errores
-        let output = '';
-        let error = '';
-
-        python.stdout.on('data', (data) => {
-            output += data.toString();
-        });
-
-        python.stderr.on('data', (data) => {
-            error += data.toString();
-        });
-
-        // Espera a que Flask esté listo
-        await new Promise(resolve => setTimeout(resolve, 3000));
-
-        // Realiza la solicitud a Flask
-        const response = await fetch('http://localhost:5000' + event.path, {
-            method: event.httpMethod,
-            headers: event.headers,
-            body: event.body
-        });
-
-        const responseBody = await response.text();
-
-        // Termina el proceso de Flask
-        python.kill();
+        // Servir el index.html por defecto
+        const htmlContent = fs.readFileSync(path.join(__dirname, '../../static/templates', page), 'utf8');
 
         return {
-            statusCode: response.status,
-            headers: {
-                ...headers,
-                ...Object.fromEntries(response.headers)
-            },
-            body: responseBody
+            statusCode: 200,
+            headers: { 'Content-Type': 'text/html' },
+            body: htmlContent
         };
     } catch (err) {
+        console.log('Error:', err);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: err.message })
+            body: JSON.stringify({ error: 'Error interno del servidor', details: err.message })
         };
     }
 }; 

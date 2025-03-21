@@ -4,9 +4,13 @@
     "description": "Formulario para Cámara de Comercio de Samborondón",
     "main": "index.js",
     "scripts": {
-        "build": "pip install -r requirements.txt"
+        "build": "pip install pipenv && pipenv install --deploy && mkdir -p static/templates && cp -r app/templates/* static/templates/ && cp -r app/static/* static/"
+    },
+    "engines": {
+        "node": ">=16.0.0"
     },
     "dependencies": {
-        "node-fetch": "^3.3.0"
+        "fs": "0.0.1-security",
+        "path": "^0.12.7"
     }
 }

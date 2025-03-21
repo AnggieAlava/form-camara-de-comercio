@@ -130,3 +130,74 @@ Permite el registro de solicitudes de nuevos socios, enviando información relev
   Cuando la solicitud es aceptada y validada correctamente.
 
 ---# form-camara-de-comercio
+
+# Formulario de Cámara de Comercio de Samborondón
+
+Formulario web para el registro y consulta de solicitudes de nuevos socios.
+
+## Despliegue en Netlify
+
+Para desplegar esta aplicación en Netlify, siga estos pasos:
+
+1. Asegúrese de que el repositorio esté actualizado en GitHub
+
+2. Inicie sesión en [Netlify](https://www.netlify.com/)
+
+3. Haga clic en "New site from Git"
+
+4. Seleccione GitHub como proveedor Git
+
+5. Autorice a Netlify para acceder a sus repositorios
+
+6. Seleccione este repositorio
+
+7. Configure los ajustes de despliegue:
+   - Build command: `npm run build`
+   - Publish directory: `static`
+
+8. Haga clic en "Deploy site"
+
+## Solución de problemas de despliegue
+
+Si encuentra errores durante el despliegue:
+
+1. Asegúrese de que Netlify esté utilizando Node.js 16 o superior
+   - En Site settings > Build & deploy > Environment > Environment variables
+   - Agregue `NODE_VERSION` con valor `16`
+
+2. Si hay problemas con Python:
+   - En Site settings > Build & deploy > Environment > Environment variables
+   - Agregue `PYTHON_VERSION` con valor `3.8`
+
+3. Verifique los registros de construcción para identificar errores específicos
+
+## Desarrollo local
+
+Para ejecutar la aplicación localmente:
+
+```bash
+# Instalar dependencias
+pipenv install
+
+# Activar el entorno virtual
+pipenv shell
+
+# Iniciar el servidor de desarrollo
+pipenv run start
+```
+
+La aplicación estará disponible en http://localhost:5000
+
+## Estructura del proyecto
+
+- `app/`: Código fuente de la aplicación Flask
+  - `templates/`: Plantillas HTML
+  - `static/`: Archivos estáticos (CSS, JS, imágenes)
+  - `routes.py`: Rutas de la aplicación
+
+- `netlify/functions/`: Funciones serverless para Netlify
+  - `app.js`: Función principal para servir la aplicación
+
+## Licencia
+
+© Cámara de Comercio de Samborondón - 2024

@@ -1,7 +1,11 @@
 [build]
-  command = "pip install -r requirements.txt"
-  publish = "app/static"
+  command = "pip install pipenv && pipenv install --deploy && cp -r app/templates app/static/ && cp -r app/static ."
+  publish = "static"
   functions = "netlify/functions"
+
+[build.environment]
+  PYTHON_VERSION = "3.8"
+  NODE_VERSION = "16"
 
 [functions]
   directory = "netlify/functions"
