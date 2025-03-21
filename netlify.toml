@@ -1,10 +1,10 @@
 [build]
-  command = "pip install pipenv && pipenv install --deploy && cp -r app/templates app/static/ && cp -r app/static ."
+  command = "ls -la && pwd && pip install pipenv && pipenv --version && python --version && mkdir -p static/templates static/static && npm run build"
   publish = "static"
   functions = "netlify/functions"
 
 [build.environment]
-  PYTHON_VERSION = "3.8"
+  PYTHON_VERSION = "3.12"
   NODE_VERSION = "16"
 
 [functions]
@@ -13,4 +13,4 @@
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/app"
-  status = 200 
+  status = 200
