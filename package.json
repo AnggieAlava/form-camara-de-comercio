@@ -4,7 +4,7 @@
     "description": "Formulario para Cámara de Comercio de Samborondón",
     "main": "index.js",
     "scripts": {
-        "build": "pip install pipenv && pipenv install --deploy && mkdir -p static/templates && mkdir -p app/templates app/static || true && cp -r app/templates/* static/templates/ || true && cp -r app/static/* static/ || true"
+        "build": "pip install -r requirements.txt && mkdir -p static/templates && cp -r app/templates/* static/templates/ && cp -r app/static/* static/"
     },
     "engines": {
         "node": ">=16.0.0"

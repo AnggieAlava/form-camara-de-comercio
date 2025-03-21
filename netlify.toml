@@ -1,5 +1,5 @@
 [build]
-  command = "ls -la && pwd && pip install pipenv && pipenv --version && python --version && mkdir -p static/templates static/static && npm run build"
+  command = "pip install -r requirements.txt && mkdir -p static/templates static/static && cp -r app/templates/* static/templates/ && cp -r app/static/* static/"
   publish = "static"
   functions = "netlify/functions"
 
