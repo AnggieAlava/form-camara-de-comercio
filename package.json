@@ -1,0 +1,12 @@
+{
+    "name": "form-steve",
+    "version": "1.0.0",
+    "description": "Formulario para Cámara de Comercio de Samborondón",
+    "main": "index.js",
+    "scripts": {
+        "build": "pip install -r requirements.txt"
+    },
+    "dependencies": {
+        "node-fetch": "^3.3.0"
+    }
+}
