@@ -3,7 +3,6 @@ All routes for the application in a single file.
 """
 
 import base64
-import os
 
 import requests
 from flask import jsonify, render_template, request
@@ -97,7 +96,6 @@ def init_app(app):
                 return jsonify({"codigo": "400", "message": "Datos JSON no válidos"}), 400
 
             cedula_ruc = data.get("cedula_ruc")
-            print(f"IO: Consulta de estado para cédula/RUC: {cedula_ruc}")
 
             # Validate input data
             is_valid, error = validate_estado_solicitud(cedula_ruc)
@@ -106,42 +104,34 @@ def init_app(app):
                 return jsonify({"codigo": "400", "message": error}), 400
 
             # Direct connection to the external API
-            response = requests.post(f"{API_URL}/api/estado-solicitud", json={"cedula_ruc": cedula_ruc}, timeout=10)
-            print(f"IO: Respuesta de API externa (status code): {response.status_code}")
+            response = requests.post(f"{API_URL}/api/estado-solicitud", json={"cedula_ruc": cedula_ruc}, timeout=30)
 
             # Check for HTTP error codes
             if response.status_code >= 400:
                 try:
-                    # Intentar obtener mensaje de error de la respuesta
-                    error_content = response.text
-                    print(f"IO: Contenido de error: {error_content}")
-
-                    # Si es un error 500 específicamente del servidor externo
+                    # If server returned specific 500 error
                     if response.status_code == 500:
                         return jsonify(
                             {"codigo": "400", "message": "No existe una Solicitud con la información ingresada."}
                         )
-                except Exception as e:
-                    print(f"Error al procesar mensaje de error: {str(e)}")
+                except Exception:
+                    pass
 
                 return (
                     jsonify({"codigo": "400", "message": "No existe una Solicitud con la información ingresada."}),
                     400,
                 )
 
-            # Intentar parsear la respuesta como JSON
+            # Parse response as JSON
             try:
                 api_response = response.json()
-                print(f"IO: Respuesta de API externa: {api_response}")
                 return jsonify(api_response)
             except ValueError:
-                print("Error: La respuesta del servidor no es un formato JSON válido")
-                # Si la respuesta no es JSON válido, devolver error formateado según documentación
+                # If response is not valid JSON, return formatted error
                 return jsonify({"codigo": "400", "message": "No existe una Solicitud con la información ingresada."})
 
         except Exception as e:
             print(f"Error en el servidor: {str(e)}")
-            # Capturar cualquier excepción y devolver respuesta JSON estructurada
             return jsonify({"codigo": "500", "message": f"Error en el servidor: {str(e)}"}), 500
 
     @app.route("/api/registro-solicitud", methods=["POST"])
@@ -154,17 +144,6 @@ def init_app(app):
                 print("Error: Datos JSON no válidos en registro de solicitud")
                 return jsonify({"codigo": "400", "message": "Datos JSON no válidos"}), 400
 
-            print(f"IO: Nueva solicitud para cédula/RUC: {form_data.get('cedula_ruc')}")
-
-            # Debug: Print and decode file1 content
-            if "file1" in form_data:
-                print("Contenido codificado de file1:", form_data["file1"][:100])  # Print first 100 chars
-                try:
-                    decoded = base64.b64decode(form_data["file1"])
-                    print("Contenido decodificado de file1 (primeros 100 bytes):", decoded[:100])
-                except Exception as e:
-                    print("Error decodificando file1:", str(e))
-
             # Validate input data
             is_valid, error = validate_solicitud(form_data)
             if not is_valid:
@@ -173,36 +152,28 @@ def init_app(app):
 
             # Direct connection to the external API
             response = requests.post(f"{API_URL}/api/registro-solicitud", json=form_data, timeout=30)
-            print(f"IO: Respuesta de API externa (status code): {response.status_code}")
 
             # Check for HTTP error codes
             if response.status_code >= 400:
                 try:
-                    # Intentar obtener mensaje de error de la respuesta
-                    error_content = response.text
-                    print(f"IO: Contenido de error: {error_content}")
-
-                    # Si es un error 500 específicamente del servidor externo
+                    # If server returned specific 500 error
                     if response.status_code == 500:
                         return jsonify(
                             {"codigo": "400", "message": "Ya existe una Solicitud con la misma Cédula o RUC."}
                         )
-                except Exception as e:
-                    print(f"Error al procesar mensaje de error: {str(e)}")
+                except Exception:
+                    pass
 
                 return jsonify({"codigo": "400", "message": "Error al procesar la solicitud."}), 400
 
-            # Intentar parsear la respuesta como JSON
+            # Parse response as JSON
             try:
                 api_response = response.json()
-                print(f"IO: Respuesta de API externa: {api_response}")
                 return jsonify(api_response)
             except ValueError:
-                print("Error: La respuesta del servidor no es un formato JSON válido")
-                # Si la respuesta no es JSON válido, seguir la estructura de la documentación
+                # If response is not valid JSON, return success message
                 return jsonify({"codigo": "200", "message": "Archivos subidos exitosamente"})
 
         except Exception as e:
             print(f"Error en el servidor: {str(e)}")
-            # Capturar cualquier excepción y devolver respuesta JSON estructurada
             return jsonify({"codigo": "500", "message": f"Error en el servidor: {str(e)}"}), 500
